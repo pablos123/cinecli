@@ -46,7 +46,7 @@ def today(ctx) -> None:
     Print todays movie shows.
     """
     date_int: int = int(arrow.now().format("YYYYMMDD"))
-    ctx.ob["printer"].echo_query(ctx.obj["cursor"], "elcairo", date_int)
+    ctx.obj["printer"].echo_query(ctx.obj["cursor"], "elcairo", date_int)
 
 
 @elcairo.command()
@@ -56,7 +56,7 @@ def tomorrow(ctx) -> None:
     Print tomorrow movie shows.
     """
     date_int: int = int(arrow.now().dehumanize("in a day").format("YYYYMMDD"))
-    ctx.ob["printer"].echo_query(ctx.obj["cursor"], "elcairo", date_int)
+    ctx.obj["printer"].echo_query(ctx.obj["cursor"], "elcairo", date_int)
 
 
 @elcairo.command()
@@ -66,7 +66,7 @@ def upcoming(ctx) -> None:
     Print upcoming movie shows.
     """
     date_int: int = int(arrow.now().format("YYYYMMDD"))
-    ctx.ob["printer"].echo_query(ctx.obj["cursor"], "elcairo", date_int)
+    ctx.obj["printer"].echo_query(ctx.obj["cursor"], "elcairo", date_int)
 
 
 @elcairo.command()
@@ -82,7 +82,7 @@ def day(ctx, date) -> None:
 
     date_arrow: Arrow = arrow.get(f"{year}-{month}-{day_date}")
     date_int: int = int(date_arrow.format("YYYYMMDD"))
-    ctx.ob["printer"].echo_query(ctx.obj["cursor"], "elcairo", date_int)
+    ctx.obj["printer"].echo_query(ctx.obj["cursor"], "elcairo", date_int)
 
 
 @elcairo.command()
@@ -98,4 +98,4 @@ def until(ctx, date) -> None:
 
     date_arrow: Arrow = arrow.get(f"{year}-{month}-{day_date}")
     date_int: int = int(date_arrow.format("YYYYMMDD"))
-    ctx.ob["printer"].echo_query(ctx.obj["cursor"], "elcairo", date_int)
+    ctx.obj["printer"].echo_query(ctx.obj["cursor"], "elcairo", date_int)

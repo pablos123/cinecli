@@ -1,5 +1,5 @@
 """
-El Cairo command.
+El Cairo command group.
 """
 
 import os
@@ -10,36 +10,8 @@ import arrow
 import click
 from arrow import Arrow
 
+from .lib.database_utils import execute_query
 from .lib.movie_printer import MoviePrinter
-
-
-def echo_movies(ctx, date_int: int) -> None:
-    """
-    Echo the requested movies.
-    """
-    try:
-        movies = execute_query(ctx.obj["cursor"], date_int)
-        ctx.obj["printer"].echo_list(movies)
-    except sqlite3.OperationalError:
-        click.echo(
-            "There is something wrong with the database, populate again...")
-        ctx.exit(1)
-
-
-def execute_query(cursor: sqlite3.Cursor, date_int: int) -> list:
-    """
-    Execute el cairo movies
-    """
-    movies: list = []
-    try:
-        res = cursor.execute(
-            f"SELECT * FROM movies WHERE cinema='elcairo' AND compare_date <= {date_int};"
-        )
-        movies = [dict(row) for row in res.fetchall()]
-    except sqlite3.OperationalError as _:
-        raise _
-
-    return movies
 
 
 @click.group()
@@ -74,7 +46,7 @@ def today(ctx) -> None:
     Print todays movie shows.
     """
     date_int: int = int(arrow.now().format("YYYYMMDD"))
-    echo_movies(ctx, date_int)
+    ctx.ob["printer"].echo_query(ctx.obj["cursor"], "elcairo", date_int)
 
 
 @elcairo.command()
@@ -83,8 +55,8 @@ def tomorrow(ctx) -> None:
     """
     Print tomorrow movie shows.
     """
-    date_int: int = int(arrow.now().dehumanize("tomorrow").format("YYYYMMDD"))
-    echo_movies(ctx, date_int)
+    date_int: int = int(arrow.now().dehumanize("in a day").format("YYYYMMDD"))
+    ctx.ob["printer"].echo_query(ctx.obj["cursor"], "elcairo", date_int)
 
 
 @elcairo.command()
@@ -94,7 +66,7 @@ def upcoming(ctx) -> None:
     Print upcoming movie shows.
     """
     date_int: int = int(arrow.now().format("YYYYMMDD"))
-    echo_movies(ctx, date_int)
+    ctx.ob["printer"].echo_query(ctx.obj["cursor"], "elcairo", date_int)
 
 
 @elcairo.command()
@@ -109,10 +81,8 @@ def day(ctx, date) -> None:
     day_date: str = str(date.day).zfill(2)
 
     date_arrow: Arrow = arrow.get(f"{year}-{month}-{day_date}")
-
     date_int: int = int(date_arrow.format("YYYYMMDD"))
-
-    echo_movies(ctx, date_int)
+    ctx.ob["printer"].echo_query(ctx.obj["cursor"], "elcairo", date_int)
 
 
 @elcairo.command()
@@ -127,7 +97,5 @@ def until(ctx, date) -> None:
     day_date: str = str(date.day).zfill(2)
 
     date_arrow: Arrow = arrow.get(f"{year}-{month}-{day_date}")
-
     date_int: int = int(date_arrow.format("YYYYMMDD"))
-
-    echo_movies(ctx, date_int)
+    ctx.ob["printer"].echo_query(ctx.obj["cursor"], "elcairo", date_int)

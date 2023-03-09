@@ -1,8 +1,12 @@
 """Print movies"""
+import sqlite3
+
 import arrow
 import click
 from arrow import Arrow
 from colorama import Back, Fore, Style
+
+from .database_utils import execute_query
 
 DEFAULT = "[Nothing to show...]"
 
@@ -37,7 +41,20 @@ class MoviePrinter:
         self.no_extra_info = no_extra_info
         self.urls = urls
 
-    def echo_list(self, movies: dict) -> None:
+    def echo_query(self, cursor: sqlite3.Cursor, cinema: str, date_int: int) -> None:
+        """
+        Print a cinema's movie shows after the execution
+        of the cinema query in a particular cursor.
+        """
+
+        try:
+            movies = execute_query(cursor, cinema, date_int)
+            self.echo_list(movies)
+        except sqlite3.OperationalError:
+            click.echo(
+                "There is something wrong with the database, populate again...")
+
+    def echo_list(self, movies: list) -> None:
         """
         Print a list of movies
         """

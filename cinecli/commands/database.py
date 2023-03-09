@@ -14,7 +14,7 @@ import arrow
 import click
 import climage
 import requests
-from colorama import Back, Fore, Style
+from colorama import Fore, Style
 from progress.spinner import MoonSpinner
 
 from ..apis.elcairo import ElCairo

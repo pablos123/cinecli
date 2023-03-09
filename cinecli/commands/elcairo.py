@@ -13,13 +13,41 @@ from arrow import Arrow
 from .lib.movie_printer import MoviePrinter
 
 
+def echo_movies(ctx, date_int: int) -> None:
+    """
+    Echo the requested movies.
+    """
+    try:
+        movies = execute_query(ctx.obj["cursor"], date_int)
+        ctx.obj["printer"].echo_list(movies)
+    except sqlite3.OperationalError:
+        click.echo(
+            "There is something wrong with the database, populate again...")
+        ctx.exit(1)
+
+
+def execute_query(cursor: sqlite3.Cursor, date_int: int) -> list:
+    """
+    Execute el cairo movies
+    """
+    movies: list = []
+    try:
+        res = cursor.execute(
+            f"SELECT * FROM movies WHERE cinema='elcairo' AND compare_date <= {date_int};"
+        )
+        movies = [dict(row) for row in res.fetchall()]
+    except sqlite3.OperationalError as _:
+        raise _
+
+    return movies
+
+
 @click.group()
 @click.pass_context
 def elcairo(ctx) -> None:
     """
     Print El Cairo movie shows.
     """
-
     script_dir: str = os.path.realpath(os.path.dirname(__file__))
     database_file: str = os.path.join(script_dir, "cinecli.db")
 
@@ -45,19 +73,18 @@ def today(ctx) -> None:
     """
     Print todays movie shows.
     """
-
     date_int: int = int(arrow.now().format("YYYYMMDD"))
+    echo_movies(ctx, date_int)
 
-    try:
-        res = ctx.obj["cursor"].execute(
-            f"SELECT * FROM movies WHERE cinema='elcairo' AND compare_date = {date_int};"
-        )
-        todays_shows = [dict(row) for row in res.fetchall()]
-        ctx.obj["printer"].echo_list(todays_shows)
-    except sqlite3.OperationalError as _:
-        click.echo(
-            "There is something wrong with the database, populate again...")
-        ctx.exit(1)
+
+@elcairo.command()
+@click.pass_context
+def tomorrow(ctx) -> None:
+    """
+    Print tomorrow movie shows.
+    """
+    date_int: int = int(arrow.now().dehumanize("tomorrow").format("YYYYMMDD"))
+    echo_movies(ctx, date_int)
 
 
 @elcairo.command()
@@ -66,19 +93,8 @@ def upcoming(ctx) -> None:
     """
     Print upcoming movie shows.
     """
-
     date_int: int = int(arrow.now().format("YYYYMMDD"))
-
-    try:
-        res = ctx.obj["cursor"].execute(
-            f"SELECT * FROM movies WHERE cinema='elcairo' AND compare_date >= {date_int};"
-        )
-        upcoming_shows = [dict(row) for row in res.fetchall()]
-        ctx.obj["printer"].echo_list(upcoming_shows)
-    except sqlite3.OperationalError as _:
-        click.echo(
-            "There is something wrong with the database, populate again...")
-        ctx.exit(1)
+    echo_movies(ctx, date_int)
 
 
 @elcairo.command()
@@ -88,7 +104,6 @@ def day(ctx, date) -> None:
     """
     Print movie shows of a given date.
     """
-
     year: str = str(date.year).zfill(4)
     month: str = str(date.month).zfill(2)
     day_date: str = str(date.day).zfill(2)
@@ -97,16 +112,7 @@ def day(ctx, date) -> None:
 
     date_int: int = int(date_arrow.format("YYYYMMDD"))
 
-    try:
-        res = ctx.obj["cursor"].execute(
-            f"SELECT * FROM movies WHERE cinema='elcairo' AND compare_date = {date_int};"
-        )
-        day_shows = [dict(row) for row in res.fetchall()]
-        ctx.obj["printer"].echo_list(day_shows)
-    except sqlite3.OperationalError as _:
-        click.echo(
-            "There is something wrong with the database, populate again...")
-        ctx.exit(1)
+    echo_movies(ctx, date_int)
 
 
 @elcairo.command()
@@ -116,7 +122,6 @@ def until(ctx, date) -> None:
     """
     Print movie shows until a given date.
     """
-
     year: str = str(date.year).zfill(4)
     month: str = str(date.month).zfill(2)
     day_date: str = str(date.day).zfill(2)
@@ -125,13 +130,4 @@ def until(ctx, date) -> None:
 
     date_int: int = int(date_arrow.format("YYYYMMDD"))
 
-    try:
-        res = ctx.obj["cursor"].execute(
-            f"SELECT * FROM movies WHERE cinema='elcairo' AND compare_date <= {date_int};"
-        )
-        day_shows = [dict(row) for row in res.fetchall()]
-        ctx.obj["printer"].echo_list(day_shows)
-    except sqlite3.OperationalError as _:
-        click.echo(
-            "There is something wrong with the database, populate again...")
-        ctx.exit(1)
+    echo_movies(ctx, date_int)

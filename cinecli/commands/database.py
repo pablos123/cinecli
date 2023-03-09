@@ -14,6 +14,7 @@ import arrow
 import click
 import climage
 import requests
+from colorama import Back, Fore, Style
 from progress.spinner import MoonSpinner
 
 from ..apis.elcairo import ElCairo
@@ -132,6 +133,7 @@ def populate(ctx) -> None:
     thread_fetch.start()
 
     if not ctx.obj["silent"]:
+        click.echo(f"{Fore.BLUE}El Cairo Cinema{Style.RESET_ALL}")
         # This will wait for thread to finish
         loading("Fetching data", thread_fetch)
 
